@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>কম্বো ফাইন্ডার – ডিজিটাল সেলস</title>
+<style>
+  :root{
+    --text:#2C2C2B; --text2:#7D7A75; --canvas:#FFFFFF; --soft:#F9F8F7;
+    --soft2:#F0EFED; --border:#E6E5E3;
+    --blue:#2783DE; --blue-soft:#E5F2FC;
+    --green:#46A171; --green-soft:#E8F1EC;
+    --orange:#D5803B; --orange-soft:#FBEBDE;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --text:#FFFFFF; --text2:rgba(255,255,255,.65); --canvas:#191919;
+      --soft:#202020; --soft2:#383836; --border:rgba(255,255,255,.20);
+      --blue:#5E9FE8; --blue-soft:rgba(94,159,232,.12);
+      --green:#72BC8F; --green-soft:rgba(114,188,143,.12);
+      --orange:#DE9255; --orange-soft:rgba(222,146,85,.12);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Bengali",Helvetica,Arial,sans-serif;
+    background:var(--canvas); color:var(--text);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1120px; margin:0 auto; padding:32px 24px 64px;}
+  header{margin-bottom:24px;}
+  h1{font-size:28px; font-weight:700; letter-spacing:-.02em; margin-bottom:6px;}
+  .sub{color:var(--text2); font-size:15px;}
+  .controls{
+    position:sticky; top:0; z-index:10; background:var(--canvas);
+    padding:16px 0; margin-bottom:8px; border-bottom:1px solid var(--border);
+  }
+  .searchbox{position:relative; margin-bottom:12px;}
+  .searchbox svg{position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--text2);}
+  #search{
+    width:100%; padding:14px 16px 14px 46px; font-size:16px;
+    border:1px solid var(--border); border-radius:10px;
+    background:var(--soft); color:var(--text); outline:none;
+  }
+  #search:focus{border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft);}
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    padding:7px 14px; font-size:14px; border:1px solid var(--border);
+    border-radius:999px; background:var(--canvas); color:var(--text2);
+    cursor:pointer; user-select:none; white-space:nowrap;
+  }
+  .chip:hover{background:var(--soft2);}
+  .chip.active{background:var(--blue); border-color:var(--blue); color:#fff;}
+  .count{color:var(--text2); font-size:14px; margin:16px 0 12px;}
+  .count b{color:var(--text);}
+  .tablewrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px;}
+  table{width:100%; border-collapse:collapse; font-size:14px; min-width:820px;}
+  thead th{
+    text-align:left; font-weight:600; font-size:12.5px; color:var(--text2);
+    text-transform:uppercase; letter-spacing:.03em;
+    padding:12px 14px; background:var(--soft); border-bottom:1px solid var(--border);
+    position:sticky; top:0; white-space:nowrap;
+  }
+  tbody td{padding:13px 14px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--soft);}
+  .pname{font-weight:600; max-width:340px;}
+  .code{font-family:Menlo,Consolas,monospace; font-size:12.5px; color:var(--text2); white-space:nowrap;}
+  .tag{display:inline-block; padding:2px 9px; border-radius:6px; font-size:12px; background:var(--soft2); color:var(--text2); white-space:nowrap;}
+  .num{text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .final{font-weight:700; color:var(--blue);}
+  .disc{color:var(--orange);}
+  .inc{font-weight:600; color:var(--green);}
+  mark{background:#FFE9A8; color:inherit; padding:0 1px; border-radius:2px;}
+  @media (prefers-color-scheme: dark){ mark{background:rgba(234,194,107,.35);} }
+  .empty{text-align:center; padding:56px 20px; color:var(--text2);}
+  .empty .big{font-size:22px; margin-bottom:6px; color:var(--text);}
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:16px; font-size:13px; color:var(--text2);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .dot{width:10px; height:10px; border-radius:3px; display:inline-block;}
+  footer{margin-top:28px; color:var(--text2); font-size:13px; text-align:center;}
+  @media (max-width:600px){ .wrap{padding:20px 16px 48px;} h1{font-size:23px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🛍️ কম্বো ফাইন্ডার</h1>
+    <div class="sub">ডিজিটাল সেলস টিম — প্রোডাক্টের নাম লিখে কম্বো, অফার ও ইনসেনটিভ খুঁজুন।</div>
+  </header>
+
+  <div class="controls">
+    <div class="searchbox">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="search" type="text" placeholder="প্রোডাক্টের নাম বা কোড লিখুন… (যেমন: Gummies, Bella, BTCMB33)" autocomplete="off">
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <div class="count" id="count"></div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>প্রোডাক্ট</th>
+          <th class="num">QTY</th>
+          <th class="num">ইনসেনটিভ</th>
+          <th>ক্যাটাগরি</th>
+          <th class="num">টোটাল</th>
+          <th class="num">ডিসকাউন্ট</th>
+          <th class="num">ফাইনাল (কাস্টমার)</th>
+          <th>কোড</th>
+          <th>কম্বো</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="empty" id="empty" style="display:none">
+    <div class="big">বাউ রে 🙅 কিছু পাওয়া যায়নি</div>
+    <div>অন্য কোনো নাম বা কোড দিয়ে চেষ্টা করুন।</div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--orange)"></span> ডিসকাউন্ট = কাস্টমারকে কত ছাড় দেবেন</span>
+    <span><span class="dot" style="background:var(--blue)"></span> ফাইনাল = কাস্টমার যত টাকা দেবে</span>
+    <span><span class="dot" style="background:var(--green)"></span> ইনসেনটিভ = আপনার লাভ</span>
+  </div>
+
+  <footer>সব দাম বাংলাদেশি টাকায় (৳) • শুধু Active কম্বো • মোট <span id="total"></span>টি</footer>
+</div>
+
+<script>
+const DATA = [
+ {n:"PWP HYLU Collagen 10ml (Yellow / White)",c:"BTCMB20",cb:"",cat:"Serum/Toner",q:3,mrp:990,t:2970,d:200,f:2770,i:100},
+ {n:"PWP HYLU Collagen 10ml (Yellow / White)",c:"BTCMB21",cb:"",cat:"Serum/Toner",q:5,mrp:990,t:4950,d:300,f:4650,i:200},
+ {n:"Auravia SlimBurner Max – Chocolate Weight Loss Shake",c:"BTCMB01",cb:"",cat:"Supplement",q:3,mrp:1990,t:5970,d:500,f:5470,i:100},
+ {n:"Auravia SlimBurner Max – Chocolate Weight Loss Shake",c:"BTCMB02",cb:"",cat:"Supplement",q:6,mrp:1990,t:11940,d:1100,f:10840,i:250},
+ {n:"Auravia SlimBurner Max – Chocolate Weight Loss Shake",c:"BTCMB03",cb:"",cat:"Supplement",q:8,mrp:1990,t:15920,d:1500,f:14420,i:550},
+ {n:"Auravia Aura White Body Brightening Night Cream",c:"BTCMB28",cb:"",cat:"Body Care",q:3,mrp:1990,t:5970,d:500,f:5470,i:100},
+ {n:"Auravia Aura White Body Brightening Night Cream",c:"BTCMB29",cb:"",cat:"Body Care",q:6,mrp:1990,t:11940,d:1100,f:10840,i:300},
+ {n:"Auravia Aura White Body Brightening Night Cream",c:"BTCMB30",cb:"",cat:"Body Care",q:8,mrp:1990,t:15920,d:1500,f:14420,i:500},
+ {n:"Auravia Skin Gummies",c:"BTCMB31",cb:"",cat:"Supplement",q:3,mrp:5500,t:16500,d:500,f:16000,i:250},
+ {n:"Auravia Skin Gummies",c:"BTCMB32",cb:"",cat:"Supplement",q:6,mrp:5500,t:33000,d:1100,f:31900,i:600},
+ {n:"Auravia Skin Gummies",c:"BTCMB33",cb:"",cat:"Supplement",q:9,mrp:5500,t:49500,d:1500,f:48000,i:1000},
+ {n:"Auravia Whitening Aura carrot soap",c:"BTCMB15",cb:"",cat:"Soap",q:3,mrp:1090,t:3270,d:500,f:2770,i:100},
+ {n:"Auravia Whitening Aura carrot soap",c:"BTCMB16",cb:"",cat:"Soap",q:6,mrp:1090,t:6540,d:1100,f:5440,i:250},
+ {n:"Auravia Whitening Lemon Miracle Body Soap",c:"BTCMB34",cb:"",cat:"Soap",q:3,mrp:1490,t:4470,d:500,f:3970,i:100},
+ {n:"Auravia Whitening Lemon Miracle Body Soap",c:"BTCMB35",cb:"",cat:"Soap",q:4,mrp:1490,t:5960,d:700,f:5260,i:150},
+ {n:"Auravia Whitening Lemon Miracle Body Soap",c:"BTCMB36",cb:"",cat:"Soap",q:5,mrp:1490,t:7450,d:800,f:6650,i:300},
+ {n:"TVLV Hairline Powder",c:"BTCMB37",cb:"",cat:"Hair care",q:1,mrp:590,t:590,d:0,f:590,i:50},
+ {n:"TVLV Hairline Powder",c:"BTCMB38",cb:"",cat:"Hair care",q:2,mrp:590,t:1180,d:200,f:980,i:120},
+ {n:"TVLV Hairline Powder",c:"BTCMB39",cb:"",cat:"Hair care",q:3,mrp:590,t:1770,d:350,f:1420,i:200},
+ {n:"JJ sunscreen",c:"BTCMB41",cb:"",cat:"Sunscreen",q:2,mrp:1390,t:2780,d:300,f:2480,i:100},
+ {n:"JJ sunscreen",c:"BTCMB42",cb:"",cat:"Sunscreen",q:3,mrp:1390,t:4170,d:500,f:3670,i:150},
+ {n:"Barmiz Thanaka (Combo 3)",c:"BTCMB43",cb:"",cat:"Facial care",q:3,mrp:1090,t:3270,d:300,f:2970,i:100},
+ {n:"Barmiz Thanaka",c:"BTCMB44",cb:"",cat:"Facial care",q:4,mrp:1090,t:4360,d:450,f:3910,i:200},
+ {n:"Chafful 334 + Zero pores serum",c:"BTCMB47",cb:"",cat:"Facial care",q:2,mrp:null,t:2980,d:300,f:2680,i:150},
+ {n:"Slow moving Products under 200pc",c:"BTCMB48",cb:"",cat:"Other",q:1,mrp:0,t:0,d:null,f:null,i:50},
+ {n:"Slow moving Products under 200pc",c:"BTCMB49",cb:"",cat:"Other",q:3,mrp:500,t:0,d:0,f:0,i:150},
+ {n:"Auravia Keto Burner 7X Formula",c:"BTCMB50",cb:"",cat:"Supplement",q:3,mrp:1690,t:5070,d:500,f:4570,i:100},
+ {n:"Auravia Keto Burner 7X Formula",c:"BTCMB51",cb:"",cat:"Supplement",q:6,mrp:1690,t:10140,d:1100,f:9040,i:300},
+ {n:"Auravia Bella Beauty 3X (Black)",c:"BTCMB60",cb:"Malesma",cat:"Night Cream",q:3,mrp:2290,t:6870,d:500,f:6370,i:100},
+ {n:"Auravia Bella Beauty 3X (Black)",c:"BTCMB61",cb:"Malesma",cat:"Night Cream",q:6,mrp:2290,t:13740,d:1100,f:12640,i:250},
+ {n:"Auravia Bella Beauty 3X (Black)",c:"BTCMB62",cb:"Malesma",cat:"Night Cream",q:9,mrp:2290,t:20610,d:1500,f:19110,i:500},
+ {n:"Auravia Bella Beauty 3X (Green)",c:"BTCMB63",cb:"Acne",cat:"Night Cream",q:3,mrp:2290,t:6870,d:500,f:6370,i:100},
+ {n:"Auravia Bella Beauty 3X (Green)",c:"BTCMB64",cb:"Acne",cat:"Night Cream",q:6,mrp:2290,t:13740,d:1100,f:12640,i:250},
+ {n:"Auravia Bella Beauty 3X (Green)",c:"BTCMB65",cb:"Acne",cat:"Night Cream",q:9,mrp:2290,t:20610,d:1500,f:19110,i:500},
+ {n:"Auravia Bella beauty 3x (RED)",c:"BTCMB66",cb:"Brightening",cat:"Night Cream",q:3,mrp:2290,t:6870,d:500,f:6370,i:100},
+ {n:"Auravia Bella beauty 3x (RED)",c:"BTCMB67",cb:"Brightening",cat:"Night Cream",q:6,mrp:2290,t:13740,d:1100,f:12640,i:250},
+ {n:"Auravia Bella beauty 3x (RED)",c:"BTCMB68",cb:"Brightening",cat:"Night Cream",q:9,mrp:2290,t:20610,d:1500,f:19110,i:500},
+ {n:"Auravia Bella Beauty 3X(Green) + Barmiz Thanaka + Auravia Acne brightening Serum",c:"BTCMB52",cb:"Acne",cat:"Facial care",q:3,mrp:null,t:5070,d:600,f:4470,i:100},
+ {n:"Auravia Bella Beauty 3X(Green) + Barmiz Thanaka + Auravia Acne brightening Serum + 2P any",c:"BTCMB53",cb:"Acne",cat:"Facial care",q:5,mrp:null,t:null,d:600,f:null,i:300},
+ {n:"Auravia Bella Beauty 3X(Black) + Barmiz Thanaka + Auravia Malesma Brightening Serum",c:"BTCMB56",cb:"Malesma",cat:"Facial care",q:3,mrp:null,t:5070,d:600,f:4470,i:100},
+ {n:"Auravia Bella Beauty 3X(Black) + Barmiz Thanaka + Auravia Malesma Brightening Serum + 2p any",c:"BTCMB57",cb:"Malesma",cat:"Facial care",q:5,mrp:null,t:null,d:600,f:null,i:300},
+ {n:"Auravia Bella beauty 3x(RED) + Auravia Carrot Soap + Auravia Signature Glow Brightening Serum",c:"BTCMB58",cb:"Fair Combo",cat:"Facial care",q:3,mrp:null,t:5070,d:600,f:4470,i:100},
+ {n:"Auravia Bella beauty 3x(RED) + Auravia Carrot Soap + Auravia Signature Glow Brightening Serum + 2P any",c:"BTCMB59",cb:"Fair Combo",cat:"Facial care",q:5,mrp:null,t:null,d:600,f:null,i:300},
+ {n:"Dermexen Lip Treatment",c:"BTCMB69",cb:"",cat:"Lip Care",q:2,mrp:1190,t:2380,d:0,f:2400,i:30},
+ {n:"Dermexen Lip Treatment",c:"BTCMB70",cb:"",cat:"Lip Care",q:4,mrp:1190,t:4760,d:200,f:4560,i:100},
+ {n:"Dermexen 4% Dark spot Corrector Eye Cream",c:"BTCMB71",cb:"",cat:"Eye care",q:2,mrp:1590,t:3180,d:0,f:3180,i:80},
+ {n:"Dermexen 4% Dark spot Corrector Eye Cream",c:"BTCMB72",cb:"",cat:"Eye care",q:3,mrp:1590,t:4770,d:300,f:4470,i:150},
+ {n:"Auravia Aura White Body Brightening Night Cream + Auravia Whitening Lemon Miracle Body Soap + Auravia Gluta Berry Body Brightening Serum",c:"BTCMB88",cb:"Body combo",cat:"Body Combo",q:3,mrp:null,t:5770,d:500,f:5270,i:100},
+ {n:"Auravia CICA+PDRN Hydraboost Repair Cream",c:"BTCMB75",cb:"",cat:"Moisturizer",q:2,mrp:1990,t:3980,d:0,f:3980,i:100},
+ {n:"Auravia CICA+PDRN Hydraboost Repair Cream",c:"BTCMB76",cb:"",cat:"Moisturizer",q:3,mrp:1990,t:5970,d:400,f:5570,i:180}
+];
+
+const tk = v => (v===null||v===undefined) ? "—" : "৳" + v.toLocaleString("en-US");
+const esc = s => s.replace(/[&<>]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+function hl(s, q){ if(!q) return esc(s); const i=s.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return esc(s); return esc(s.slice(0,i))+"<mark>"+esc(s.slice(i,i+q.length))+"</mark>"+esc(s.slice(i+q.length)); }
+
+const cats = [...new Set(DATA.map(d=>d.cat))].sort();
+let activeCat = "সব";
+let query = "";
+
+const chipsEl = document.getElementById("chips");
+["সব", ...cats].forEach(cat=>{
+  const el=document.createElement("div");
+  el.className="chip"+(cat==="সব"?" active":"");
+  el.textContent=cat;
+  el.onclick=()=>{ activeCat=cat; document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active")); el.classList.add("active"); render(); };
+  chipsEl.appendChild(el);
+});
+
+document.getElementById("total").textContent = DATA.length;
+const tbody=document.getElementById("tbody");
+const countEl=document.getElementById("count");
+const emptyEl=document.getElementById("empty");
+const tableWrap=document.querySelector(".tablewrap");
+
+function render(){
+  const q=query.trim().toLowerCase();
+  const rows=DATA.filter(d=>{
+    const catOk = activeCat==="সব" || d.cat===activeCat;
+    const qOk = !q || (d.n+" "+d.c+" "+d.cb+" "+d.cat).toLowerCase().includes(q);
+    return catOk && qOk;
+  });
+  countEl.innerHTML = "<b>"+rows.length+"</b> টি কম্বো পাওয়া গেছে";
+  if(rows.length===0){ tableWrap.style.display="none"; emptyEl.style.display="block"; tbody.innerHTML=""; return; }
+  tableWrap.style.display="block"; emptyEl.style.display="none";
+  tbody.innerHTML = rows.map(d=>`<tr>
+    <td class="pname">${hl(d.n, query.trim())}</td>
+    <td class="num">${d.q}</td>
+    <td class="num inc">${tk(d.i)}</td>
+    <td><span class="tag">${esc(d.cat)}</span></td>
+    <td class="num">${tk(d.t)}</td>
+    <td class="num disc">${d.d?tk(d.d):(d.d===0?"৳0":"—")}</td>
+    <td class="num final">${tk(d.f)}</td>
+    <td class="code">${hl(d.c, query.trim())}</td>
+    <td>${d.cb?`<span class="tag">${esc(d.cb)}</span>`:"—"}</td>
+  </tr>`).join("");
+}
+
+document.getElementById("search").addEventListener("input", e=>{ query=e.target.value; render(); });
+render();
+</script>
+</body>
+</html>
